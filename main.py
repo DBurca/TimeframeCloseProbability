@@ -210,30 +210,22 @@ def get_sp500_tickers():
     Get S&P 500 ticker symbols from Wikipedia.
     """
     try:
-        # Read S&P 500 list from Wikipedia
-        url = 'https://en.wikipedia.org/wiki/List_of_S%26P_500_companies'
-        tables = pd.read_html(url)
-        sp500_table = tables[0]
-        tickers = sp500_table['Symbol'].tolist()
+        # Read S&P 500 list from text file
+        with open('stocks.txt', 'r') as f:
+            tickers = [line.strip() for line in f if line.strip()]
         
-        # Clean up tickers (some may have dots instead of dashes)
-        clean_tickers = []
-        for ticker in tickers:
-            # Replace dots with dashes for yfinance compatibility
-            clean_ticker = ticker.replace('.', '-')
-            clean_tickers.append(clean_ticker)
-        
-        return clean_tickers
+        return tickers
     except Exception as e:
         print(f"Error loading S&P 500 list: {e}")
         # Fallback to a smaller list of major stocks
-        return ['SPY', 'QQQ', 'AAPL','UNH', 'INTC', 'CMCSA', 'T', 'CVX', 'NVDA', 
+        return ['SPY', 'DJT', 'QQQ', 'AAPL','UNH', 'INTC', 'CMCSA', 'T', 'CVX', 'NVDA', 
                 'MSFT', 'AMZN', 'GOOGL', 'GOOG', 'META', 'AVGO', 'TSLA',
                 'JPM', 'WMT', 'ORCL', 'LLY', 'V', 'MA', 'NFLX', 'XOM', 'COST', 'JNJ',
                 'HD', 'ABBV', 'BAC', 'KO', 'MRK', 'CRM', 'ADBE', 'PEP', 'TMO',
                 'TMUS', 'LIN', 'MCD', 'ACN', 'CSCO', 'GE', 'IBM', 'ABT', 'DHR', 'BX',
                 'NOW', 'WFC', 'AXP', 'QCOM', 'PM', 'VZ', 'TXN', 'AMGN', 'INTU', 'CAT',
-                'ISRG', 'NEE', 'DIS', 'PFE', 'MS', 'SPGI', 'AMAT', 'GS', 'RTX']
+                'ISRG', 'NEE', 'DIS', 'PFE', 'MS', 'SPGI', 'AMAT', 'GS', 'RTX', 'SNOW', 'PANW'
+                'PLTR']
 
 def analyze_ticker_for_scanner(ticker, timeframe, days, min_data_points=50):
     """
@@ -411,6 +403,8 @@ def scanner_mode(timeframe, days):
     print(f"{'Ticker':<8} {'Price':<10} {'Upside%':<9} {'Downside%':<11} {'Streak':<12} {'Direction':<10} {'Market Cap':<15}")
     print("-" * 100)
     
+    # The following code block returns the analysis for the last stock in the list. Not necessary at this time, so commenting it out
+    """
     for result in final_results:
         market_cap_str = f"${result['market_cap']/1e9:.1f}B" if result['market_cap'] > 0 else "N/A"
         streak_str = f"{result['current_streak']} periods"
@@ -480,9 +474,11 @@ def scanner_mode(timeframe, days):
                 print(f"{i:2d}. {stock['ticker']} - {stock['upside_probability']:.1f}% upside probability")
             else:
                 print(f"{i:2d}. {stock['ticker']} - {stock['downside_probability']:.1f}% downside probability")
-    """
-    Main analysis function for a given ticker with specified timeframe and days.
-    """
+    
+    
+   
+    #### Main analysis function for a given ticker with specified timeframe and days.
+    
     print(f"\n{'='*60}")
     print(f"ANALYZING {ticker.upper()} - {timeframe.upper()} TIMEFRAME")
     print(f"{'='*60}")
@@ -641,6 +637,7 @@ def scanner_mode(timeframe, days):
         
     except Exception as e:
         print(f"Error analyzing {ticker}: {str(e)}")
+    """
 
 def analyze_ticker(ticker, timeframe, days):
     """
