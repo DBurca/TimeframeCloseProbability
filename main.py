@@ -403,8 +403,6 @@ def scanner_mode(timeframe, days):
     print(f"{'Ticker':<8} {'Price':<10} {'Upside%':<9} {'Downside%':<11} {'Streak':<12} {'Direction':<10} {'Market Cap':<15}")
     print("-" * 100)
     
-    # The following code block returns the analysis for the last stock in the list. Not necessary at this time, so commenting it out
-    """
     for result in final_results:
         market_cap_str = f"${result['market_cap']/1e9:.1f}B" if result['market_cap'] > 0 else "N/A"
         streak_str = f"{result['current_streak']} periods"
@@ -453,22 +451,22 @@ def scanner_mode(timeframe, days):
     # Show top 10 by highest probability
     print(f"\n{'='*60}")
     if scan_type == '1':
-        top_stocks = sorted(results, key=lambda x: x['upside_probability'], reverse=True)[:50]
-        print("TOP 50 UPSIDE OPPORTUNITIES:")
+        top_stocks = sorted(results, key=lambda x: x['upside_probability'], reverse=True)[:10]
+        print("TOP 10 UPSIDE OPPORTUNITIES:")
         for i, stock in enumerate(top_stocks, 1):
             print(f"{i:2d}. {stock['ticker']} - {stock['upside_probability']:.1f}% upside probability")
     elif scan_type == '2':
-        top_stocks = sorted(results, key=lambda x: x['downside_probability'], reverse=True)[:50]
-        print("TOP 50 DOWNSIDE OPPORTUNITIES:")
+        top_stocks = sorted(results, key=lambda x: x['downside_probability'], reverse=True)[:10]
+        print("TOP 10 DOWNSIDE OPPORTUNITIES:")
         for i, stock in enumerate(top_stocks, 1):
             print(f"{i:2d}. {stock['ticker']} - {stock['downside_probability']:.1f}% downside probability")
     else:  # Both
-        print("TOP 50 HIGHEST PROBABILITY OPPORTUNITIES:")
+        print("TOP 10 HIGHEST PROBABILITY OPPORTUNITIES:")
         # Sort by highest probability (either upside or downside)
         for result in results:
             result['max_probability'] = max(result['upside_probability'], result['downside_probability'])
         
-        top_stocks = sorted(results, key=lambda x: x['max_probability'], reverse=True)[:50]
+        top_stocks = sorted(results, key=lambda x: x['max_probability'], reverse=True)[:10]
         for i, stock in enumerate(top_stocks, 1):
             if stock['upside_probability'] > stock['downside_probability']:
                 print(f"{i:2d}. {stock['ticker']} - {stock['upside_probability']:.1f}% upside probability")
@@ -478,7 +476,7 @@ def scanner_mode(timeframe, days):
     
    
     #### Main analysis function for a given ticker with specified timeframe and days.
-    
+    """
     print(f"\n{'='*60}")
     print(f"ANALYZING {ticker.upper()} - {timeframe.upper()} TIMEFRAME")
     print(f"{'='*60}")
