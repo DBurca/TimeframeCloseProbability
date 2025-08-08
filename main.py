@@ -5,6 +5,7 @@ import pandas as pd
 from collections import defaultdict, Counter
 import time, tqdm
 from scanner import scanner_mode
+from utils import get_consecutive_streaks, get_current_streak, calculate_streak_probabilities
 
 def calculate_break_probabilities(up_streaks, down_streaks, current_length, current_direction):
     """
