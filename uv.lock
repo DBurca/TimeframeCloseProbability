@@ -966,6 +966,13 @@ dev = [
     { name = "ruff" },
 ]
 
+[package.dev-dependencies]
+dev = [
+    { name = "black" },
+    { name = "pytest" },
+    { name = "ruff" },
+]
+
 [package.metadata]
 requires-dist = [
     { name = "black", marker = "extra == 'dev'", specifier = ">=23.0.0" },
@@ -978,6 +985,13 @@ requires-dist = [
     { name = "yfinance", specifier = ">=0.2.28" },
 ]
 provides-extras = ["dev"]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "black", specifier = ">=25.1.0" },
+    { name = "pytest", specifier = ">=8.4.1" },
+    { name = "ruff", specifier = ">=0.12.8" },
+]
 
 [[package]]
 name = "tomli"

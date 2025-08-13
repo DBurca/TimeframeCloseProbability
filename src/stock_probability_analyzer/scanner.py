@@ -1,8 +1,13 @@
+
+import tqdm
 import yfinance as yf
-import pandas as pd
-from collections import defaultdict, Counter
-import time, tqdm
-from stock_probability_analyzer.utils import calculate_streak_probabilities, get_consecutive_streaks, get_current_streak
+
+from stock_probability_analyzer.utils import (
+    calculate_streak_probabilities,
+    get_consecutive_streaks,
+    get_current_streak,
+)
+
 
 def get_sp500_tickers():
     """
@@ -10,21 +15,84 @@ def get_sp500_tickers():
     """
     try:
         # Read S&P 500 list from text file
-        with open('data/stocks.txt', 'r') as f:
+        with open("data/stocks.txt") as f:
             tickers = [line.strip() for line in f if line.strip()]
-        
+
         return tickers
     except Exception as e:
         print(f"Error loading S&P 500 list: {e}")
         # Fallback to a smaller list of major stocks
-        return ['SPY', 'DJT', 'QQQ', 'AAPL','UNH', 'INTC', 'CMCSA', 'T', 'CVX', 'NVDA', 
-                'MSFT', 'AMZN', 'GOOGL', 'GOOG', 'META', 'AVGO', 'TSLA',
-                'JPM', 'WMT', 'ORCL', 'LLY', 'V', 'MA', 'NFLX', 'XOM', 'COST', 'JNJ',
-                'HD', 'ABBV', 'BAC', 'KO', 'MRK', 'CRM', 'ADBE', 'PEP', 'TMO',
-                'TMUS', 'LIN', 'MCD', 'ACN', 'CSCO', 'GE', 'IBM', 'ABT', 'DHR', 'BX',
-                'NOW', 'WFC', 'AXP', 'QCOM', 'PM', 'VZ', 'TXN', 'AMGN', 'INTU', 'CAT',
-                'ISRG', 'NEE', 'DIS', 'PFE', 'MS', 'SPGI', 'AMAT', 'GS', 'RTX', 'SNOW', 'PANW'
-                'PLTR']
+        return [
+            "SPY",
+            "DJT",
+            "QQQ",
+            "AAPL",
+            "UNH",
+            "INTC",
+            "CMCSA",
+            "T",
+            "CVX",
+            "NVDA",
+            "MSFT",
+            "AMZN",
+            "GOOGL",
+            "GOOG",
+            "META",
+            "AVGO",
+            "TSLA",
+            "JPM",
+            "WMT",
+            "ORCL",
+            "LLY",
+            "V",
+            "MA",
+            "NFLX",
+            "XOM",
+            "COST",
+            "JNJ",
+            "HD",
+            "ABBV",
+            "BAC",
+            "KO",
+            "MRK",
+            "CRM",
+            "ADBE",
+            "PEP",
+            "TMO",
+            "TMUS",
+            "LIN",
+            "MCD",
+            "ACN",
+            "CSCO",
+            "GE",
+            "IBM",
+            "ABT",
+            "DHR",
+            "BX",
+            "NOW",
+            "WFC",
+            "AXP",
+            "QCOM",
+            "PM",
+            "VZ",
+            "TXN",
+            "AMGN",
+            "INTU",
+            "CAT",
+            "ISRG",
+            "NEE",
+            "DIS",
+            "PFE",
+            "MS",
+            "SPGI",
+            "AMAT",
+            "GS",
+            "RTX",
+            "SNOW",
+            "PANW",
+	    "PLTR",
+        ]
+
 
 def analyze_ticker_for_scanner(ticker, timeframe, days, min_data_points=50):
     """
@@ -34,7 +102,7 @@ def analyze_ticker_for_scanner(ticker, timeframe, days, min_data_points=50):
     try:
         # Download data
         stock = yf.Ticker(ticker)
-        
+
         # Calculate period string for yfinance
         if days <= 5:
             period_str = f"{days}d"
@@ -43,26 +111,26 @@ def analyze_ticker_for_scanner(ticker, timeframe, days, min_data_points=50):
         else:
             years = max(1, days // 365)
             period_str = f"{years}y"
-        
+
         # Download with specified interval
         data = stock.history(period=period_str, interval=timeframe)
-        
+
         if data.empty or len(data) < min_data_points:
             return None
-        
-        closes = data['Close'].values
-        
+
+        closes = data["Close"].values
+
         # Get consecutive streaks
         up_streaks, down_streaks = get_consecutive_streaks(closes)
-        
+
         if not up_streaks or not down_streaks:
             return None
-        
+
         # Get current streak
         current_length, current_direction = get_current_streak(closes)
-        
+
         # Calculate probabilities for next close
-        if current_direction == 'up':
+        if current_direction == "up":
             extend_prob = calculate_streak_probabilities(up_streaks, current_length)
             next_upside_prob = extend_prob
             next_downside_prob = 100 - extend_prob
@@ -70,25 +138,26 @@ def analyze_ticker_for_scanner(ticker, timeframe, days, min_data_points=50):
             extend_prob = calculate_streak_probabilities(down_streaks, current_length)
             next_upside_prob = 100 - extend_prob
             next_downside_prob = extend_prob
-        
+
         # Get basic stock info
         info = stock.info
-        market_cap = info.get('marketCap', 0) if info else 0
+        market_cap = info.get("marketCap", 0) if info else 0
         current_price = closes[-1]
-        
+
         return {
-            'ticker': ticker,
-            'upside_probability': next_upside_prob,
-            'downside_probability': next_downside_prob,
-            'current_streak': current_length,
-            'streak_direction': current_direction,
-            'current_price': current_price,
-            'market_cap': market_cap,
-            'data_points': len(closes)
+            "ticker": ticker,
+            "upside_probability": next_upside_prob,
+            "downside_probability": next_downside_prob,
+            "current_streak": current_length,
+            "streak_direction": current_direction,
+            "current_price": current_price,
+            "market_cap": market_cap,
+            "data_points": len(closes),
         }
-        
-    except Exception as e:
+
+    except Exception:
         return None
+
 
 def scanner_mode(timeframe, days):
     """
@@ -98,182 +167,207 @@ def scanner_mode(timeframe, days):
     print("STOCK PROBABILITY SCANNER")
     print(f"{'='*60}")
     print(f"Scanning S&P 500 stocks with {timeframe} timeframe and {days} days of data")
-    
+
     # Get scan criteria
     print("\nScanner Options:")
     print("1. Scan for upside probability")
     print("2. Scan for downside probability")
     print("3. Scan for both (show all stocks)")
-    
+
     while True:
         try:
             scan_type = input("Select scan type (1-3): ").strip()
-            if scan_type in ['1', '2', '3']:
+            if scan_type in ["1", "2", "3"]:
                 break
             else:
                 print("Please enter 1, 2, or 3")
         except:
             print("Please enter 1, 2, or 3")
-    
+
     # Get minimum probability threshold
     while True:
         try:
-            min_prob = float(input("Enter minimum probability threshold (e.g., 70 for 70%): "))
+            min_prob = float(
+                input("Enter minimum probability threshold (e.g., 70 for 70%): ")
+            )
             if 0 <= min_prob <= 100:
                 break
             else:
                 print("Please enter a probability between 0 and 100")
         except ValueError:
             print("Please enter a valid number")
-    
+
     # Get S&P 500 tickers
     print("Loading S&P 500 ticker list...")
     tickers = get_sp500_tickers()
     print(f"Found {len(tickers)} tickers to scan")
-    
+
     # Initialize results storage
     results = []
     successful_scans = 0
     failed_scans = 0
-    
-    print(f"\nScanning stocks... (this may take a few minutes)")
+
+    print("\nScanning stocks... (this may take a few minutes)")
     print("Progress: [", end="", flush=True)
-    
+
     # Progress tracking - OLD
     # total_tickers = len(tickers)
     # progress_interval = max(1, total_tickers // 50)  # Show 50 progress marks max
-    
+
     for ticker in tqdm.tqdm(tickers, desc="Progress", ncols=80):
         # Show progress - old style
         # if i % progress_interval == 0:
         #    print("█", end="", flush=True)
-        
+
         # Analyze ticker
         result = analyze_ticker_for_scanner(ticker, timeframe, days)
-        
+
         if result:
             successful_scans += 1
-            
+
             # Check if it meets criteria
             meets_criteria = False
-            
-            if scan_type == '1':  # Upside only
-                if result['upside_probability'] >= min_prob:
+
+            if scan_type == "1":  # Upside only
+                if result["upside_probability"] >= min_prob:
                     meets_criteria = True
-            elif scan_type == '2':  # Downside only
-                if result['downside_probability'] >= min_prob:
+            elif scan_type == "2":  # Downside only
+                if result["downside_probability"] >= min_prob:
                     meets_criteria = True
             else:  # Both (scan_type == '3')
-                if result['upside_probability'] >= min_prob or result['downside_probability'] >= min_prob:
+                if (
+                    result["upside_probability"] >= min_prob
+                    or result["downside_probability"] >= min_prob
+                ):
                     meets_criteria = True
-            
+
             if meets_criteria:
                 results.append(result)
         else:
             failed_scans += 1
-    
+
     # print("]")  # Close progress bar - old style
-    
+
     # Display results
-    print(f"\nScan Complete!")
+    print("\nScan Complete!")
     print(f"Successfully analyzed: {successful_scans} stocks")
     print(f"Failed to analyze: {failed_scans} stocks")
     print(f"Stocks meeting criteria: {len(results)}")
-    
+
     if not results:
         print(f"\nNo stocks found with {min_prob}% or higher probability.")
         return
-    
+
     # Sort by market cap (descending) if market cap data is available
-    results_with_market_cap = [r for r in results if r['market_cap'] > 0]
-    results_without_market_cap = [r for r in results if r['market_cap'] == 0]
-    
+    results_with_market_cap = [r for r in results if r["market_cap"] > 0]
+    results_without_market_cap = [r for r in results if r["market_cap"] == 0]
+
     if results_with_market_cap:
-        results_with_market_cap.sort(key=lambda x: x['market_cap'], reverse=True)
+        results_with_market_cap.sort(key=lambda x: x["market_cap"], reverse=True)
         final_results = results_with_market_cap + results_without_market_cap
     else:
         # Sort alphabetically if no market cap data
-        final_results = sorted(results, key=lambda x: x['ticker'])
-    
+        final_results = sorted(results, key=lambda x: x["ticker"])
+
     # Display results
     print(f"\n{'='*100}")
     print("SCAN RESULTS")
     print(f"{'='*100}")
-    print(f"{'Ticker':<8} {'Price':<10} {'Upside%':<9} {'Downside%':<11} {'Streak':<12} {'Direction':<10} {'Market Cap':<15}")
+    print(
+        f"{'Ticker':<8} {'Price':<10} {'Upside%':<9} {'Downside%':<11} {'Streak':<12} {'Direction':<10} {'Market Cap':<15}"
+    )
     print("-" * 100)
-    
+
     for result in final_results:
-        market_cap_str = f"${result['market_cap']/1e9:.1f}B" if result['market_cap'] > 0 else "N/A"
+        market_cap_str = (
+            f"${result['market_cap']/1e9:.1f}B" if result["market_cap"] > 0 else "N/A"
+        )
         streak_str = f"{result['current_streak']} periods"
-        
-        print(f"{result['ticker']:<8} "
-              f"${result['current_price']:<9.2f} "
-              f"{result['upside_probability']:<8.1f}% "
-              f"{result['downside_probability']:<10.1f}% "
-              f"{streak_str:<12} "
-              f"{result['streak_direction'].upper():<10} "
-              f"{market_cap_str:<15}")
-    
+
+        print(
+            f"{result['ticker']:<8} "
+            f"${result['current_price']:<9.2f} "
+            f"{result['upside_probability']:<8.1f}% "
+            f"{result['downside_probability']:<10.1f}% "
+            f"{streak_str:<12} "
+            f"{result['streak_direction'].upper():<10} "
+            f"{market_cap_str:<15}"
+        )
+
     # Summary by probability ranges
     print(f"\n{'='*60}")
     print("PROBABILITY DISTRIBUTION")
     print(f"{'='*60}")
-    
-    if scan_type in ['1', '3']:  # Include upside analysis
+
+    if scan_type in ["1", "3"]:  # Include upside analysis
         upside_ranges = {
-            '90%+': len([r for r in results if r['upside_probability'] >= 90]),
-            '80-89%': len([r for r in results if 80 <= r['upside_probability'] < 90]),
-            '70-79%': len([r for r in results if 70 <= r['upside_probability'] < 80]),
-            '60-69%': len([r for r in results if 60 <= r['upside_probability'] < 70]),
-            '50-59%': len([r for r in results if 50 <= r['upside_probability'] < 60])
+            "90%+": len([r for r in results if r["upside_probability"] >= 90]),
+            "80-89%": len([r for r in results if 80 <= r["upside_probability"] < 90]),
+            "70-79%": len([r for r in results if 70 <= r["upside_probability"] < 80]),
+            "60-69%": len([r for r in results if 60 <= r["upside_probability"] < 70]),
+            "50-59%": len([r for r in results if 50 <= r["upside_probability"] < 60]),
         }
-        
+
         print("Upside Probability Distribution:")
         for range_name, count in upside_ranges.items():
             if count > 0:
                 print(f"  {range_name}: {count} stocks")
-    
-    if scan_type in ['2', '3']:  # Include downside analysis
+
+    if scan_type in ["2", "3"]:  # Include downside analysis
         downside_ranges = {
-            '90%+': len([r for r in results if r['downside_probability'] >= 90]),
-            '80-89%': len([r for r in results if 80 <= r['downside_probability'] < 90]),
-            '70-79%': len([r for r in results if 70 <= r['downside_probability'] < 80]),
-            '60-69%': len([r for r in results if 60 <= r['downside_probability'] < 70]),
-            '50-59%': len([r for r in results if 50 <= r['downside_probability'] < 60])
+            "90%+": len([r for r in results if r["downside_probability"] >= 90]),
+            "80-89%": len([r for r in results if 80 <= r["downside_probability"] < 90]),
+            "70-79%": len([r for r in results if 70 <= r["downside_probability"] < 80]),
+            "60-69%": len([r for r in results if 60 <= r["downside_probability"] < 70]),
+            "50-59%": len([r for r in results if 50 <= r["downside_probability"] < 60]),
         }
-        
+
         print("Downside Probability Distribution:")
         for range_name, count in downside_ranges.items():
             if count > 0:
                 print(f"  {range_name}: {count} stocks")
-    
+
     # Show top 10 by highest probability
     print(f"\n{'='*60}")
-    if scan_type == '1':
-        top_stocks = sorted(results, key=lambda x: x['upside_probability'], reverse=True)[:10]
+    if scan_type == "1":
+        top_stocks = sorted(
+            results, key=lambda x: x["upside_probability"], reverse=True
+        )[:10]
         print("TOP 10 UPSIDE OPPORTUNITIES:")
         for i, stock in enumerate(top_stocks, 1):
-            print(f"{i:2d}. {stock['ticker']} - {stock['upside_probability']:.1f}% upside probability")
-    elif scan_type == '2':
-        top_stocks = sorted(results, key=lambda x: x['downside_probability'], reverse=True)[:10]
+            print(
+                f"{i:2d}. {stock['ticker']} - {stock['upside_probability']:.1f}% upside probability"
+            )
+    elif scan_type == "2":
+        top_stocks = sorted(
+            results, key=lambda x: x["downside_probability"], reverse=True
+        )[:10]
         print("TOP 10 DOWNSIDE OPPORTUNITIES:")
         for i, stock in enumerate(top_stocks, 1):
-            print(f"{i:2d}. {stock['ticker']} - {stock['downside_probability']:.1f}% downside probability")
+            print(
+                f"{i:2d}. {stock['ticker']} - {stock['downside_probability']:.1f}% downside probability"
+            )
     else:  # Both
         print("TOP 10 HIGHEST PROBABILITY OPPORTUNITIES:")
         # Sort by highest probability (either upside or downside)
         for result in results:
-            result['max_probability'] = max(result['upside_probability'], result['downside_probability'])
-        
-        top_stocks = sorted(results, key=lambda x: x['max_probability'], reverse=True)[:10]
+            result["max_probability"] = max(
+                result["upside_probability"], result["downside_probability"]
+            )
+
+        top_stocks = sorted(results, key=lambda x: x["max_probability"], reverse=True)[
+            :10
+        ]
         for i, stock in enumerate(top_stocks, 1):
-            if stock['upside_probability'] > stock['downside_probability']:
-                print(f"{i:2d}. {stock['ticker']} - {stock['upside_probability']:.1f}% upside probability")
+            if stock["upside_probability"] > stock["downside_probability"]:
+                print(
+                    f"{i:2d}. {stock['ticker']} - {stock['upside_probability']:.1f}% upside probability"
+                )
             else:
-                print(f"{i:2d}. {stock['ticker']} - {stock['downside_probability']:.1f}% downside probability")
-    
-    
-   
+                print(
+                    f"{i:2d}. {stock['ticker']} - {stock['downside_probability']:.1f}% downside probability"
+                )
+
     #### Main analysis function for a given ticker with specified timeframe and days.
     """
     print(f"\n{'='*60}")

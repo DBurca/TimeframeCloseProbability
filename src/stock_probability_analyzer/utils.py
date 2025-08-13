@@ -1,9 +1,6 @@
 # UTILITY FILE
 
-import yfinance as yf
-import pandas as pd
-from collections import defaultdict, Counter
-import time, tqdm
+
 
 def get_consecutive_streaks(closes):
     """
@@ -12,12 +9,12 @@ def get_consecutive_streaks(closes):
     """
     up_streaks = []
     down_streaks = []
-    
+
     current_up_streak = 0
     current_down_streak = 0
-    
+
     for i in range(1, len(closes)):
-        if closes[i] > closes[i-1]:  # Up day
+        if closes[i] > closes[i - 1]:  # Up day
             current_up_streak += 1
             if current_down_streak > 0:
                 down_streaks.append(current_down_streak)
@@ -27,14 +24,15 @@ def get_consecutive_streaks(closes):
             if current_up_streak > 0:
                 up_streaks.append(current_up_streak)
                 current_up_streak = 0
-    
+
     # Don't forget the last streak if it's still active
     if current_up_streak > 0:
         up_streaks.append(current_up_streak)
     if current_down_streak > 0:
         down_streaks.append(current_down_streak)
-    
+
     return up_streaks, down_streaks
+
 
 def get_current_streak(closes):
     """
@@ -42,25 +40,26 @@ def get_current_streak(closes):
     Returns (streak_length, direction) where direction is 'up' or 'down'
     """
     if len(closes) < 2:
-        return 0, 'none'
-    
+        return 0, "none"
+
     current_streak = 1
     if closes[-1] > closes[-2]:
-        direction = 'up'
-        for i in range(len(closes)-2, 0, -1):
-            if closes[i] > closes[i-1]:
+        direction = "up"
+        for i in range(len(closes) - 2, 0, -1):
+            if closes[i] > closes[i - 1]:
                 current_streak += 1
             else:
                 break
     else:
-        direction = 'down'
-        for i in range(len(closes)-2, 0, -1):
-            if closes[i] <= closes[i-1]:
+        direction = "down"
+        for i in range(len(closes) - 2, 0, -1):
+            if closes[i] <= closes[i - 1]:
                 current_streak += 1
             else:
                 break
-    
+
     return current_streak, direction
+
 
 def calculate_streak_probabilities(streaks, current_length):
     """
@@ -70,16 +69,18 @@ def calculate_streak_probabilities(streaks, current_length):
     """
     if not streaks:
         return 0.0
-    
+
     # Count opportunities: how many times historically did we reach current_length?
     # A streak of length N provides evidence for reaching lengths 1, 2, 3, ..., N
-    opportunities_at_current_length = sum(1 for streak in streaks if streak >= current_length)
-    
+    opportunities_at_current_length = sum(
+        1 for streak in streaks if streak >= current_length
+    )
+
     # Count extensions: how many times did we extend beyond current_length?
     # A streak of length N shows extension beyond lengths 1, 2, 3, ..., N-1
     extended_count = sum(1 for streak in streaks if streak > current_length)
-    
+
     if opportunities_at_current_length == 0:
         return 0.0
-    
+
     return (extended_count / opportunities_at_current_length) * 100

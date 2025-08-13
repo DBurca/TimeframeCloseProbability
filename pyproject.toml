@@ -116,3 +116,10 @@ python_files = "test_*.py"
 python_classes = "Test*"
 python_functions = "test_*"
 addopts = "-v --tb=short"
+
+[dependency-groups]
+dev = [
+    "black>=25.1.0",
+    "pytest>=8.4.1",
+    "ruff>=0.12.8",
+]
