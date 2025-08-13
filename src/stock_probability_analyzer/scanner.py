@@ -2,7 +2,7 @@ import yfinance as yf
 import pandas as pd
 from collections import defaultdict, Counter
 import time, tqdm
-from utils import calculate_streak_probabilities, get_consecutive_streaks, get_current_streak
+from stock_probability_analyzer.utils import calculate_streak_probabilities, get_consecutive_streaks, get_current_streak
 
 def get_sp500_tickers():
     """
@@ -10,7 +10,7 @@ def get_sp500_tickers():
     """
     try:
         # Read S&P 500 list from text file
-        with open('stocks.txt', 'r') as f:
+        with open('data/stocks.txt', 'r') as f:
             tickers = [line.strip() for line in f if line.strip()]
         
         return tickers
